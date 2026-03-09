@@ -20,7 +20,7 @@ model = RandomForestRegressor(n_estimators=100, random_state=42)
 model.fit(X_train, y_train)
 
 # Save model
-joblib.dump(model, "regression_model.pkl")
+joblib.dump(model, "model_generators/regression/regression_model.pkl")
 
 # Predict
 predictions = model.predict(X_test)
