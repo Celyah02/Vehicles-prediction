@@ -1,10 +1,11 @@
 import pandas as pd
 from django.shortcuts import render
-from predictor.data_exploration import dataset_exploration, data_exploration
+from predictor.data_exploration import dataset_exploration, data_exploration, rwanda_vehicle_map
 import joblib
 from model_generators.clustering.train_cluster import evaluate_clustering_model
 from model_generators.classification.train_classifier import evaluate_classification_model
 from model_generators.regression.train_regression import evaluate_regression_model
+import numpy as np
 
 # Load models once
 regression_model = joblib.load(
@@ -17,13 +18,31 @@ clustering_model = joblib.load(
 
 def data_exploration_view(request):
     df = pd.read_csv("dummy-data/vehicles_ml_dataset.csv")
+    
+    # Calculate coefficient of variation for clustering
+    def calculate_coefficient_of_variation(df):
+        # Use income and selling price for CV calculation
+        income_cv = df['estimated_income'].std() / df['estimated_income'].mean()
+        price_cv = df['selling_price'].std() / df['selling_price'].mean()
+        return {
+            'income_cv': round(income_cv * 100, 2),
+            'price_cv': round(price_cv * 100, 2),
+            'average_cv': round(((income_cv + price_cv) / 2) * 100, 2)
+        }
+    
+    # Get clustering evaluation and add CV
+    clustering_eval = evaluate_clustering_model()
+    cv_metrics = calculate_coefficient_of_variation(df)
+    
     context = {
         "data_exploration": data_exploration(df),
         "dataset_exploration": dataset_exploration(df),
+        "rwanda_map": rwanda_vehicle_map(df),
+        "cv_metrics": cv_metrics,
         "evaluations": {
             "regression": evaluate_regression_model(),
             "classification": evaluate_classification_model(),
-            "clustering": evaluate_clustering_model()
+            "clustering": clustering_eval
         }
     }
     

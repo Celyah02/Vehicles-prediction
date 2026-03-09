@@ -1,28 +1,55 @@
 import pandas as pd
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
+from sklearn.preprocessing import StandardScaler
 import joblib
 
 SEGMENT_FEATURES = ["estimated_income", "selling_price"]
 df = pd.read_csv("dummy-data/vehicles_ml_dataset.csv")
 X = df[SEGMENT_FEATURES]
 
-kmeans = KMeans(n_clusters=3, random_state=42, n_init="auto")
-df["cluster_id"] = kmeans.fit_predict(X)
-centers = kmeans.cluster_centers_
+# Standardize features for better clustering
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# Try different cluster numbers to find the best one
+best_score = 0
+best_kmeans = None
+best_n_clusters = 3
+
+for n_clusters in range(2, 8):
+    kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init="auto")
+    cluster_labels = kmeans.fit_predict(X_scaled)
+    score = silhouette_score(X_scaled, cluster_labels)
+    
+    if score > best_score:
+        best_score = score
+        best_kmeans = kmeans
+        best_n_clusters = n_clusters
+
+# Use the best model
+kmeans = best_kmeans
+df["cluster_id"] = kmeans.fit_predict(X_scaled)
+centers = scaler.inverse_transform(kmeans.cluster_centers_)
 
 # Sort clusters by income
 sorted_clusters = centers[:, 0].argsort()
 cluster_mapping = {
     sorted_clusters[0]: "Economy",
     sorted_clusters[1]: "Standard",
-    sorted_clusters[2]: "Premium",
 }
+if best_n_clusters >= 3:
+    cluster_mapping[sorted_clusters[2]] = "Premium"
+if best_n_clusters >= 4:
+    cluster_mapping[sorted_clusters[3]] = "Luxury"
+if best_n_clusters >= 5:
+    cluster_mapping[sorted_clusters[4]] = "Ultra"
+
 df["client_class"] = df["cluster_id"].map(cluster_mapping)
 
 joblib.dump(kmeans, "model_generators/clustering/clustering_model.pkl")
 
-silhouette_avg = round(silhouette_score(X, df["cluster_id"]), 2)
+silhouette_avg = round(best_score, 2)
 cluster_summary = df.groupby("client_class")[SEGMENT_FEATURES].mean()
 cluster_counts = df["client_class"].value_counts().reset_index()
 cluster_counts.columns = ["client_class", "count"]

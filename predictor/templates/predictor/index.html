@@ -93,12 +93,21 @@
 
                 <!-- Statistical Analysis Section -->
                 <section id="statistical-analysis" class="section-content mb-5">
-                    <div class="card shadow-sm border-0">
+                    <div class="card shadow-sm border-0 mb-4">
                         <div class="card-header bg-white border-bottom py-3">
                             <span class="fw-bold">Statistical Analysis</span>
                         </div>
                         <div class="card-body overflow-x-auto">
                             {{ data_exploration|safe }}
+                        </div>
+                    </div>
+                    
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white border-bottom py-3">
+                            <span class="fw-bold">Rwanda Vehicle Distribution Map</span>
+                        </div>
+                        <div class="card-body">
+                            {{ rwanda_map|safe }}
                         </div>
                     </div>
                 </section>
@@ -305,11 +314,36 @@
                     <div class="card shadow-sm border-0">
                         <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
                             <span class="fw-bold text-dark">Clustering Model Evaluation</span>
-                            <span class="badge bg-light text-primary border border-primary">
-                                Silhouette Score: {{ evaluations.clustering.silhouette|safe }}
-                            </span>
+                            <div>
+                                <span class="badge bg-light text-primary border border-primary me-2">
+                                    Silhouette Score: {{ evaluations.clustering.silhouette|safe }}
+                                </span>
+                                <span class="badge bg-success text-white border border-success">
+                                    CV: {{ cv_metrics.average_cv }}%
+                                </span>
+                            </div>
                         </div>
                         <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <div class="text-center">
+                                        <h6 class="text-muted">Income CV</h6>
+                                        <h4 class="text-primary">{{ cv_metrics.income_cv }}%</h4>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-center">
+                                        <h6 class="text-muted">Price CV</h6>
+                                        <h4 class="text-primary">{{ cv_metrics.price_cv }}%</h4>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-center">
+                                        <h6 class="text-muted">Average CV</h6>
+                                        <h4 class="text-success">{{ cv_metrics.average_cv }}%</h4>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="table-responsive">
                                 {{ evaluations.clustering.summary|safe }}
                             </div>
