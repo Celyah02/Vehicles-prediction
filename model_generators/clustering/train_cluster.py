@@ -414,6 +414,50 @@ for class_name in df_clean["client_class"].unique():
 cluster_stats_df = pd.DataFrame(cluster_stats)
 
 def evaluate_clustering_model():
+    # Enhanced customer profiling
+    customer_profiles = []
+    
+    for _, row in cluster_stats_df.iterrows():
+        profile = {
+            "segment": row["client_class"],
+            "size": row["count"],
+            "avg_income": row["income_mean"],
+            "avg_price": row["price_mean"],
+            "income_cv": row["income_cv"],
+            "price_cv": row["price_cv"],
+            "market_share": f"{row['count']/len(df_clean)*100:.1f}%",
+            "revenue_potential": f"${row['count'] * row['price_mean']:,.0f}",
+            "risk_level": "Low" if row["income_cv"] < 0.2 else "Medium" if row["income_cv"] < 0.4 else "High",
+            "consistency": "Very High" if row["income_cv"] < 0.2 else "High" if row["income_cv"] < 0.3 else "Moderate",
+            "recommended_strategy": get_segment_strategy(row["client_class"], row["income_mean"], row["price_mean"])
+        }
+        customer_profiles.append(profile)
+    
+    profiles_df = pd.DataFrame(customer_profiles)
+    
+    # Statistical validation
+    from scipy.stats import f_oneway
+    income_groups = [df_clean[df_clean["client_class"] == seg]["estimated_income"].values 
+                     for seg in df_clean["client_class"].unique()]
+    price_groups = [df_clean[df_clean["client_class"] == seg]["selling_price"].values 
+                   for seg in df_clean["client_class"].unique()]
+    
+    income_f_stat, income_p_value = f_oneway(*income_groups)
+    price_f_stat, price_p_value = f_oneway(*price_groups)
+    
+    statistical_significance = {
+        "income_anova": {
+            "f_statistic": round(income_f_stat, 3),
+            "p_value": f"{income_p_value:.2e}",
+            "significant": income_p_value < 0.001
+        },
+        "price_anova": {
+            "f_statistic": round(price_f_stat, 3), 
+            "p_value": f"{price_p_value:.2e}",
+            "significant": price_p_value < 0.001
+        }
+    }
+    
     return {
         "silhouette": round(silhouette_avg, 3),
         "cv_score": round(cv_score, 3),
@@ -432,12 +476,19 @@ def evaluate_clustering_model():
             justify="center",
             index=False,
         ),
-        "cv_table": cluster_stats_df.to_html(  # Add this missing key
+        "cv_table": cluster_stats_df.to_html(
             classes="table table-bordered table-striped table-sm",
             float_format="%.3f",
             justify="center",
             index=False,
         ),
+        "customer_profiles": profiles_df.to_html(
+            classes="table table-bordered table-striped table-sm",
+            float_format="%.2f",
+            justify="center",
+            index=False,
+        ),
+        "statistical_significance": statistical_significance,
         "comparison": comparison_df.head(10).to_html(
             classes="table table-bordered table-striped table-sm",
             float_format="%.2f",
@@ -445,6 +496,31 @@ def evaluate_clustering_model():
             index=False,
         ),
     }
+
+def get_segment_strategy(segment, avg_income, avg_price):
+    """Generate business strategy recommendations per segment"""
+    strategies = {
+        "Economy": [
+            "Focus on volume sales and competitive pricing",
+            "Emphasize fuel efficiency and reliability",
+            "Target first-time buyers and budget-conscious customers",
+            "Implement streamlined financing options"
+        ],
+        "Standard": [
+            "Balance value and premium features",
+            "Highlight technology and safety features",
+            "Target middle-income families and professionals",
+            "Offer flexible upgrade paths"
+        ],
+        "Premium": [
+            "Emphasize luxury, performance, and exclusivity",
+            "Provide premium customer service and personalization",
+            "Target high-net-worth individuals and enthusiasts",
+            "Create loyalty programs and exclusive events"
+        ]
+    }
+    
+    return "; ".join(strategies.get(segment, ["Standard approach"]))
 
 def predict_cluster(income_val, price_val):
     """Predict a single client's cluster label given raw income and price."""
