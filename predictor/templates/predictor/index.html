@@ -29,26 +29,26 @@
                 <div class="sidebar-section">
                     <div class="sidebar-title">Data Analysis</div>
                     <div class="nav nav-pills flex-column">
-                        <a class="nav-link mb-1 active" href="#" data-section="data-exploration">Data Exploration</a>
-                        <a class="nav-link mb-1" href="#" data-section="statistical-analysis">Statistical Analysis</a>
+                        <a class="nav-link mb-1 active" href="#data-exploration" data-section="data-exploration">Data Exploration</a>
+                        <a class="nav-link mb-1" href="#statistical-analysis" data-section="statistical-analysis">Statistical Analysis</a>
                     </div>
                 </div>
 
                 <div class="sidebar-section">
                     <div class="sidebar-title">Machine Learning</div>
                     <div class="nav nav-pills flex-column">
-                        <a class="nav-link mb-1" href="#" data-section="regression-analysis">Price Prediction</a>
-                        <a class="nav-link mb-1" href="#" data-section="classification-analysis">Income Classification</a>
-                        <a class="nav-link mb-1" href="#" data-section="clustering-analysis">Customer Segmentation</a>
+                        <a class="nav-link mb-1" href="{% url 'regression_analysis' %}">Price Prediction</a>
+                        <a class="nav-link mb-1" href="{% url 'classification_analysis' %}">Income Classification</a>
+                        <a class="nav-link mb-1" href="{% url 'clustering_analysis' %}">Customer Segmentation</a>
                     </div>
                 </div>
 
                 <div class="sidebar-section">
                     <div class="sidebar-title">Model Evaluation</div>
                     <div class="nav nav-pills flex-column">
-                        <a class="nav-link mb-1" href="#" data-section="regression-evaluation">Regression Metrics</a>
-                        <a class="nav-link mb-1" href="#" data-section="classification-evaluation">Classification Metrics</a>
-                        <a class="nav-link mb-1" href="#" data-section="clustering-evaluation">Clustering Metrics</a>
+                        <a class="nav-link mb-1" href="#regression-evaluation" data-section="regression-evaluation">Regression Metrics</a>
+                        <a class="nav-link mb-1" href="#classification-evaluation" data-section="classification-evaluation">Classification Metrics</a>
+                        <a class="nav-link mb-1" href="#clustering-evaluation" data-section="clustering-evaluation">Clustering Metrics</a>
                     </div>
                 </div>
             </nav>
@@ -248,7 +248,7 @@
                                 <small class="text-muted text-uppercase fw-bold ls-wide">Client Cluster</small>
                                 <div class="mt-2">
                                     <span class="badge rounded-pill bg-success px-4 py-2 fs-6">
-                                        {{ prediction|safe }}
+                                        {{ prediction }}
                                     </span>
                                 </div>
                             </div>
