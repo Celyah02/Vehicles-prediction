@@ -75,19 +75,6 @@
                     </div>
                 </div>
 
-                {% if evaluations.classification %}
-                <div class="card shadow-sm mt-4">
-                    <div class="card-header bg-white border-bottom py-3">
-                        <span class="fw-bold">Model Evaluation</span>
-                    </div>
-                    <div class="card-body">
-                        <p class="mb-3">The model has an accuracy of <strong>{{ evaluations.classification.accuracy }}%</strong> in correctly categorizing the income level based on historical vehicle data.</p>
-                        <div class="table-responsive">
-                            {{ evaluations.classification.comparison|safe }}
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
             </div>
         </div>
     </div>

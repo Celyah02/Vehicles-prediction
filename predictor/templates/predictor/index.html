@@ -29,8 +29,8 @@
                 <div class="sidebar-section">
                     <div class="sidebar-title">Data Analysis</div>
                     <div class="nav nav-pills flex-column">
-                        <a class="nav-link mb-1" href="{% url 'data_exploration' %}">Data Exploration</a>
-                        <a class="nav-link mb-1" href="#">Statistical Analysis</a>
+                        <a class="nav-link mb-1" href="#data-exploration" data-section="data-exploration">Data Exploration</a>
+                        <a class="nav-link mb-1" href="#statistical-analysis" data-section="statistical-analysis">Statistical Analysis</a>
                     </div>
                 </div>
 
@@ -60,27 +60,34 @@
                 </header>
 
                 <!-- Data Exploration Section -->
-                <section id="data-exploration" class="section-content mb-5">
+                <section id="data-exploration" class="section-content active mb-5">
                     <div class="card shadow-sm border-0">
                         <div class="card-header bg-white border-bottom py-3">
                             <span class="fw-bold">Data Exploration</span>
                         </div>
-                        <div class="card-body text-center p-5">
-                            <p class="text-muted mb-3">Data exploration has been moved to a dedicated page.</p>
-                            <a href="{% url 'data_exploration' %}" class="btn btn-primary">View Data Exploration</a>
+                        <div class="card-body overflow-x-auto">
+                            {{ dataset_exploration|safe }}
                         </div>
                     </div>
                 </section>
 
                 <!-- Statistical Analysis Section -->
                 <section id="statistical-analysis" class="section-content mb-5">
-                    <div class="card shadow-sm border-0">
+                    <div class="card shadow-sm border-0 mb-4">
                         <div class="card-header bg-white border-bottom py-3">
                             <span class="fw-bold">Statistical Analysis</span>
                         </div>
-                        <div class="card-body text-center p-5">
-                            <p class="text-muted mb-3">Statistical analysis is available on the data exploration page.</p>
-                            <a href="{% url 'data_exploration' %}" class="btn btn-primary">View Statistical Analysis</a>
+                        <div class="card-body overflow-x-auto">
+                            {{ data_exploration|safe }}
+                        </div>
+                    </div>
+                    
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white border-bottom py-3">
+                            <span class="fw-bold">Rwanda Vehicle Distribution Map</span>
+                        </div>
+                        <div class="card-body">
+                            {{ rwanda_map|safe }}
                         </div>
                     </div>
                 </section>
@@ -253,11 +260,37 @@
                     </div>
                 </section>
 
+
             </main>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('.nav-link[data-section]');
+            const sections = document.querySelectorAll('.section-content');
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const targetSection = this.getAttribute('data-section');
+                    
+                    // Remove active class from all links and sections
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    sections.forEach(s => s.classList.remove('active'));
+                    
+                    // Add active class to clicked link and corresponding section
+                    this.classList.add('active');
+                    const targetElement = document.getElementById(targetSection);
+                    if (targetElement) {
+                        targetElement.classList.add('active');
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 
 </html>

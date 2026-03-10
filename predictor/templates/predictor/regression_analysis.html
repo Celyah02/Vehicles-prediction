@@ -75,16 +75,6 @@
                     </div>
                 </div>
 
-                {% if evaluations.regression %}
-                <div class="card shadow-sm mt-4">
-                    <div class="card-header bg-white border-bottom py-3">
-                        <span class="fw-bold">Model Evaluation</span>
-                    </div>
-                    <div class="card-body overflow-x-auto">
-                        {{ evaluations.regression.comparison|safe }}
-                    </div>
-                </div>
-                {% endif %}
             </div>
         </div>
     </div>
