@@ -363,58 +363,14 @@ print(
     f"\n✅ {best_approach.upper()} APPROACH SELECTED (Score: {scores[best_approach]:.3f})")
 
 # Use the best approach
-if best_approach == 'KBins':
-    df_clean = df_kbins.copy()
-    cluster_labels = labels_kbins
-    silhouette_avg = silhouette_kbins
-    cv_score = cv_kbins
-    cluster_mapping = mapping_kbins
-    optimizer.kmeans = kbins_optimizer.kmeans
-    optimizer.optimal_k = 6
-elif best_approach == 'Baseline':
-    df_clean = df.copy()
-    cluster_labels = labels_baseline
-    silhouette_avg = silhouette_baseline
-    cv_score = cv_baseline
-    # Create mapping for baseline
-    centers = kmeans_baseline.cluster_centers_
-    sorted_idx = centers[:, 0].argsort()
-    cluster_mapping = {
-        int(sorted_idx[0]): "Economy",
-        int(sorted_idx[1]): "Standard",
-        int(sorted_idx[2]): "Premium"
-    }
-    optimizer.kmeans = kmeans_baseline
-    optimizer.optimal_k = 3
-else:  # Optimized
-    df_clean = df_opt.copy()
-    cluster_labels = labels_opt
-    silhouette_avg = silhouette_opt
-    cv_score = cv_opt
-    # Create mapping for optimized
-    centers = optimizer.kmeans.cluster_centers_
-    if optimizer.pca is not None:
-        centers_original = optimizer.pca.inverse_transform(centers)
-    else:
-        centers_original = centers
-    centers_unscaled = optimizer.scaler.inverse_transform(centers_original)
-    sorted_clusters = centers_unscaled[:, 0].argsort()
-    cluster_mapping = {}
-    for i, cluster_idx in enumerate(sorted_clusters):
-        if optimizer.optimal_k == 3:
-            labels = ["Economy", "Standard", "Premium"]
-        elif optimizer.optimal_k == 4:
-            labels = ["Budget", "Economy", "Standard", "Premium"]
-        elif optimizer.optimal_k == 5:
-            labels = ["Basic", "Economy", "Standard", "Premium", "Luxury"]
-        else:
-            labels = [f"Segment_{i+1}" for i in range(optimizer.optimal_k)]
 
-        if i < len(labels):
-            cluster_mapping[cluster_idx] = labels[i]
-        else:
-            cluster_mapping[cluster_idx] = f"Segment_{i+1}"
-
+df_clean = df_kbins.copy()
+cluster_labels = labels_kbins
+silhouette_avg = silhouette_kbins
+cv_score = cv_kbins
+cluster_mapping = mapping_kbins
+optimizer.kmeans = kbins_optimizer.kmeans
+optimizer.optimal_k = 6
 # Add cluster information to selected dataframe
 df_clean["cluster_id"] = cluster_labels
 df_clean["client_class"] = df_clean["cluster_id"].map(cluster_mapping)
@@ -599,37 +555,13 @@ def predict_cluster(income_val, price_val):
         df_tmp = pd.DataFrame(
             {"estimated_income": [income_val], "selling_price": [price_val]})
 
-        # Use the appropriate prediction method based on approach
-        if metadata['approach'] == 'KBins':
-            # Use KBinsDiscretizer approach
-            income = df_tmp["estimated_income"].to_numpy().reshape(-1, 1)
-            price = df_tmp["selling_price"].to_numpy().reshape(-1, 1)
-
-            income_b = metadata['kbd_i'].transform(income)
-            price_b = metadata['kbd_p'].transform(price)
-            X = np.column_stack(
-                [income_b * metadata['income_weight'], price_b])
-
-            cluster_id = int(kmeans.predict(X)[0])
-            cluster_mapping = metadata['cluster_mapping']
-
-        else:
-            # Use baseline/optimized approach
-            X = df_tmp[SEGMENT_FEATURES]
-            cluster_id = int(kmeans.predict(X)[0])
-
-            # Create mapping if not in metadata
-            if 'cluster_mapping' in metadata:
-                cluster_mapping = metadata['cluster_mapping']
-            else:
-                # Create default mapping
-                centers = kmeans.cluster_centers_
-                sorted_idx = centers[:, 0].argsort()
-                cluster_mapping = {
-                    int(sorted_idx[0]): "Economy",
-                    int(sorted_idx[1]): "Standard",
-                    int(sorted_idx[2]): "Premium"
-                }
+        income = df_tmp["estimated_income"].to_numpy().reshape(-1, 1)
+        price = df_tmp["selling_price"].to_numpy().reshape(-1, 1)
+        income_b = metadata['kbd_i'].transform(income)
+        price_b = metadata['kbd_p'].transform(price)
+        X = np.column_stack([income_b * metadata['income_weight'], price_b])
+        cluster_id = int(kmeans.predict(X)[0])
+        cluster_mapping = metadata['cluster_mapping']
 
         return cluster_mapping.get(cluster_id, "Unknown")
 
@@ -681,25 +613,16 @@ joblib.dump(optimizer.kmeans,
             "model_generators/clustering/clustering_model.pkl")
 
 # Save additional metadata for the KBins approach
-if best_approach == 'KBins':
-    metadata = {
-        'approach': 'KBins',
-        'kbd_i': kbins_optimizer.kbd_i,
-        'kbd_p': kbins_optimizer.kbd_p,
-        'income_weight': kbins_optimizer.income_weight,
-        'cluster_mapping': cluster_mapping,
-        'silhouette': silhouette_avg,
-        'cv': cv_score
-    }
-    joblib.dump(metadata, "model_generators/clustering/clustering_metadata.pkl")
-else:
-    metadata = {
-        'approach': best_approach,
-        'cluster_mapping': cluster_mapping,
-        'silhouette': silhouette_avg,
-        'cv': cv_score
-    }
-    joblib.dump(metadata, "model_generators/clustering/clustering_metadata.pkl")
+metadata = {
+    'approach': 'KBins',
+    'kbd_i': kbins_optimizer.kbd_i,
+    'kbd_p': kbins_optimizer.kbd_p,
+    'income_weight': kbins_optimizer.income_weight,
+    'cluster_mapping': cluster_mapping,
+    'silhouette': silhouette_avg,
+    'cv': cv_score
+}
+joblib.dump(metadata, "model_generators/clustering/clustering_metadata.pkl")
 
 print(f"\nModel saved as: clustering_model.pkl")
 print(f"Metadata saved as: clustering_metadata.pkl")
